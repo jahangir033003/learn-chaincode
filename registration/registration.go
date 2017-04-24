@@ -105,7 +105,7 @@ func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []stri
 	var userID string
 	var state User = User{}
 
-	var stateIn User
+	var stateIn User = User{}
 	var err error
 
 	if len(args) !=1 {

@@ -113,7 +113,7 @@ func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []stri
 	}
 	userID = stateIn.UserID
 
-	// Get the state from the ledger
+	// Get the user from the ledger
 	userBytes, err:= stub.GetState(userID)
 	if err != nil  || len(userBytes) == 0 {
 		err = errors.New("Unable to get user state from ledger -- "+userID)
@@ -168,41 +168,38 @@ func (t *SimpleChaincode) createOrUpdateUser(stub shim.ChaincodeStubInterface, a
 	var userIn User
 	var userStub User
 
-
-	// validate input data for number of args, Unmarshaling to asset state and obtain asset id
-
+	// validate input data for number of args, Unmarshaling to user state and obtain user id
 	userIn, err = t.validateInput(args)
 	if err != nil {
 		return nil, err
 	}
 	userID = userIn.UserID
 	// Partial updates introduced here
-	// Check if asset record existed in stub
+	// Check if user record existed in stub
 	assetBytes, err:= stub.GetState(userID)
-	if err != nil || len(assetBytes)==0{
+	if err != nil || len(assetBytes) == 0 {
 		// This implies that this is a 'create' scenario
-		userStub = userIn // The record that goes into the stub is the one that cme in
+		userStub = userIn
 	} else {
 		// This is an update scenario
 		err = json.Unmarshal(assetBytes, &userStub)
 		if err != nil {
 			err = errors.New("Unable to unmarshal JSON data from stub")
 			return nil, err
-			// state is an empty instance of asset state
 		}
 		// Merge partial state updates
-		userStub, err =t.mergePartialState(userStub,userIn)
+		userStub, err = t.mergePartialState(userStub, userIn)
 		if err != nil {
 			err = errors.New("Unable to merge state")
 			return nil,err
 		}
+		return nil, errors.New("Update Data: " + userStub.UserID+" "+userStub.FirstName+ " "+userStub.LastName)
 	}
 	stateJSON, err := json.Marshal(userStub)
 	if err != nil {
 		return nil, errors.New("Marshal failed for contract state" + fmt.Sprint(err))
 	}
 	// Get existing state from the stub
-
 
 	// Write the new state to the ledger
 	err = stub.PutState(userID, stateJSON)

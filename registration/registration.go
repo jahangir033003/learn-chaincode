@@ -39,10 +39,10 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	} else if function == "updateUser" {
 		// create User
 		return t.updateUser(stub, args)
-	} /*else if function == "deleteUser" {
-		// Deletes an asset by ID from the ledger
+	} else if function == "deleteUser" {
+		// Deletes an user by ID from the ledger
 		return t.deleteUser(stub, args)
-	}*/
+	}
 	return nil, errors.New("Received unknown invocation: " + function)
 }
 
@@ -80,27 +80,28 @@ func (t *SimpleChaincode) updateUser(stub shim.ChaincodeStubInterface, args []st
 	return nil, erval
 }
 
-/*
-func (t *SimpleChaincode) deleteUser(stub *shim.ChaincodeStub, args []string) ([]byte, error) {
-	var assetID string // asset ID
-	var err error
-	var stateIn AssetState
 
-	// validate input data for number of args, Unmarshaling to asset state and obtain asset id
-	stateIn, err = t.validateInput(args)
+func (t *SimpleChaincode) deleteUser(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+	var userID string // user ID
+	var err error
+	var userIn User
+
+	// validate input data for number of args, Unmarshaling to user state and obtain user id
+	userIn, err = t.validateInput(args)
 	if err != nil {
 		return nil, err
 	}
-	assetID = *stateIn.AssetID
-	// Delete the key / asset from the ledger
-	err = stub.DelState(assetID)
+	userID = userIn.UserID
+	// Delete the key / user from the ledger
+	err = stub.DelState(userID)
 	if err != nil {
 		err = errors.New("DELSTATE failed! : "+ fmt.Sprint(err))
 		return nil, err
 	}
 	return nil, nil
 }
-*/
+
+
 func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var userID string
 	var user User

@@ -176,13 +176,12 @@ func (t *SimpleChaincode) createOrUpdateUser(stub shim.ChaincodeStubInterface, a
 	userID = userIn.UserID
 	// Partial updates introduced here
 	// Check if user record existed in stub
-	assetBytes, err:= stub.GetState(userID)
-	if err != nil || len(assetBytes) == 0 {
-		// This implies that this is a 'create' scenario
+	/*
+	userBytes, err := stub.GetState(userID)
+	if err != nil || len(userBytes) == 0 { // Creat
 		userStub = userIn
-	} else {
-		// This is an update scenario
-		err = json.Unmarshal(assetBytes, &userStub)
+	} else { // Update
+		err = json.Unmarshal(userBytes, &userStub)
 		if err != nil {
 			err = errors.New("Unable to unmarshal JSON data from stub")
 			return nil, err
@@ -193,8 +192,8 @@ func (t *SimpleChaincode) createOrUpdateUser(stub shim.ChaincodeStubInterface, a
 			err = errors.New("Unable to merge state")
 			return nil,err
 		}
-		return nil, errors.New("Update Data: " + userStub.UserID+" "+userStub.FirstName+ " "+userStub.LastName)
-	}
+	}*/
+	userStub = userIn
 	stateJSON, err := json.Marshal(userStub)
 	if err != nil {
 		return nil, errors.New("Marshal failed for contract state" + fmt.Sprint(err))

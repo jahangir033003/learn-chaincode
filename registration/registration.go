@@ -20,8 +20,8 @@ type SimpleChaincode struct {
 
 type User struct {
 	UserID        	string       	`json:"UserID,omitempty"`
-	FirstName 	string 		`json:"UserID,omitempty"`
-	LastName 	string 		`json:"UserID,omitempty"`
+	FirstName 	string 		`json:"FirstName,omitempty"`
+	LastName 	string 		`json:"LastName,omitempty"`
 }
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
@@ -34,12 +34,12 @@ func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string
 func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
 	// Handle different functions
 	if function == "createUser" {
-		// create assetID
+		// create User
 		return t.createUser(stub, args)
-	}/* else if function == "updateUser" {
-		// create assetID
+	} else if function == "updateUser" {
+		// create User
 		return t.updateUser(stub, args)
-	} else if function == "deleteUser" {
+	} /*else if function == "deleteUser" {
 		// Deletes an asset by ID from the ledger
 		return t.deleteUser(stub, args)
 	}*/
@@ -106,7 +106,12 @@ func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []stri
 	var state User = User{}
 	var err error
 
-	userID = strings.TrimSpace(args[0])
+	stateIn, err:= t.validateInput(args)
+	if err != nil {
+		return nil, errors.New("Asset does not exist!")
+	}
+	userID = stateIn.UserID
+
 	// Get the state from the ledger
 	assetBytes, err:= stub.GetState(userID)
 	if err != nil  || len(assetBytes) ==0{
@@ -127,7 +132,7 @@ func (t *SimpleChaincode) validateInput(args []string) (stateIn User, err error)
 	var state User = User{}
 
 	if len(args) !=1 {
-		err = errors.New("Incorrect number of arguments. Expecting a JSON strings with mandatory assetID")
+		err = errors.New("Incorrect number of arguments. Expecting a JSON strings with mandatory UserId")
 		return state, err
 	}
 	jsonData:=args[0]
@@ -158,7 +163,7 @@ func (t *SimpleChaincode) validateInput(args []string) (stateIn User, err error)
 	stateIn.UserID = userID
 	return stateIn, nil
 }
-//******************** createOrUpdateAsset ********************/
+//******************** createOrUpdateUser ********************/
 
 func (t *SimpleChaincode) createOrUpdateUser(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var userID string

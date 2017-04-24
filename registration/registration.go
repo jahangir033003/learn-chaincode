@@ -104,8 +104,6 @@ func (t *SimpleChaincode) deleteUser(stub *shim.ChaincodeStub, args []string) ([
 func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var userID string
 	var state User = User{}
-
-	var stateIn User = User{}
 	var err error
 
 	if len(args) !=1 {
@@ -113,36 +111,7 @@ func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []stri
 		return nil, err
 	}
 
-	err = errors.New("Unable to unmarshal input JSON data -- "+args[0])
-	return nil, err
-
-	jsonData:=args[0]
-	userID = ""
-	stateJSON := []byte(jsonData)
-	err = json.Unmarshal(stateJSON, &stateIn)
-	if err != nil {
-		err = errors.New("Unable to unmarshal input JSON data -- "+stateIn.UserID)
-		return nil, err
-
-	}
-
-	if stateIn.UserID != "" {
-		userID = strings.TrimSpace(stateIn.UserID)
-		if userID == ""{
-			err = errors.New("UserId not passed --"+userID)
-			return nil, err
-		}
-	} else {
-		err = errors.New("User id is mandatory in the input JSON data -- "+userID)
-		return nil, err
-	}
-
-
-	/*stateIn, err:= t.validateInput(args)
-	if err != nil {
-		return nil, errors.New("User does not exist!")
-	}
-	userID = stateIn.UserID*/
+	userID = strings.TrimSpace(args[0])
 
 	// Get the state from the ledger
 	assetBytes, err:= stub.GetState(userID)
@@ -160,29 +129,25 @@ func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []stri
 
 
 func (t *SimpleChaincode) validateInput(args []string) (stateIn User, err error) {
-	var userID string
+
 	var state User = User{}
 
 	if len(args) !=1 {
 		err = errors.New("Incorrect number of arguments. Expecting a JSON strings with mandatory UserId")
 		return state, err
 	}
-	jsonData:=args[0]
-	userID = ""
-	stateJSON := []byte(jsonData)
-	err = json.Unmarshal(stateJSON, &stateIn)
-	if err != nil {
+
+	stateIn.UserID = strings.TrimSpace(args[0])
+	stateIn.FirstName = args[1]
+	stateIn.LastName = args[2]
+	/*if err != nil {
 		err = errors.New("Unable to unmarshal input JSON data")
 		return state, err
 		// state is an empty instance of asset state
-	}
-	// was userId present?
-	// The nil check is required because the asset id is a pointer.
-	// If no value comes in from the json input string, the values are set to nil
+	}*/
 
 	if stateIn.UserID != "" {
-		userID = strings.TrimSpace(stateIn.UserID)
-		if userID == ""{
+		if stateIn.UserID == ""{
 			err = errors.New("UserId not passed")
 			return state, err
 		}
@@ -192,7 +157,7 @@ func (t *SimpleChaincode) validateInput(args []string) (stateIn User, err error)
 	}
 
 
-	stateIn.UserID = userID
+
 	return stateIn, nil
 }
 //******************** createOrUpdateUser ********************/

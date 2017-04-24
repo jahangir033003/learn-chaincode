@@ -106,12 +106,7 @@ func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []stri
 	var state User = User{}
 	var err error
 
-	// validate input data for number of args, Unmarshaling to asset state and obtain asset id
-	stateIn, err:= t.validateInput(args)
-	if err != nil {
-		return nil, errors.New("User does not exist!")
-	}
-	userID = stateIn.UserID
+	userID = strings.TrimSpace(args[0])
 	// Get the state from the ledger
 	assetBytes, err:= stub.GetState(userID)
 	if err != nil  || len(assetBytes) ==0{

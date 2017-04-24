@@ -9,10 +9,11 @@ import (
 
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/imdario/mergo"
+	//"github.com/imdario/mergo"
 	"encoding/json"
 	"reflect"
 	"strings"
+	
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -193,10 +194,10 @@ func (t *SimpleChaincode) createOrUpdateUser(stub shim.ChaincodeStubInterface, a
 			return nil,err
 		}*/
 
-		if err := mergo.MergeWithOverwrite(&userStub, userIn); err != nil {
+		/*if err := mergo.MergeWithOverwrite(&userStub, userIn); err != nil {
 			err = errors.New("Unable to merge state")
 			return nil,err
-		}
+		}*/
 	}
 
 	stateJSON, err := json.Marshal(userStub)

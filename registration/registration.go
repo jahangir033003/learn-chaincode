@@ -9,6 +9,7 @@ import (
 
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
+	"github.com/imdario/mergo"
 	"encoding/json"
 	"reflect"
 	"strings"
@@ -176,7 +177,6 @@ func (t *SimpleChaincode) createOrUpdateUser(stub shim.ChaincodeStubInterface, a
 	userID = userIn.UserID
 	// Partial updates introduced here
 	// Check if user record existed in stub
-	/*
 	userBytes, err := stub.GetState(userID)
 	if err != nil || len(userBytes) == 0 { // Creat
 		userStub = userIn
@@ -187,13 +187,18 @@ func (t *SimpleChaincode) createOrUpdateUser(stub shim.ChaincodeStubInterface, a
 			return nil, err
 		}
 		// Merge partial state updates
-		userStub, err = t.mergePartialState(userStub, userIn)
+		/*userStub, err = t.mergePartialState(userStub, userIn)
 		if err != nil {
 			err = errors.New("Unable to merge state")
 			return nil,err
+		}*/
+
+		if err := mergo.MergeWithOverwrite(&userStub, userIn); err != nil {
+			err = errors.New("Unable to merge state")
+			return nil,err
 		}
-	}*/
-	userStub = userIn
+	}
+
 	stateJSON, err := json.Marshal(userStub)
 	if err != nil {
 		return nil, errors.New("Marshal failed for contract state" + fmt.Sprint(err))

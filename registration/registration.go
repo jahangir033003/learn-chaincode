@@ -9,7 +9,7 @@ import (
 
 
 	"github.com/hyperledger/fabric/core/chaincode/shim"
-	"github.com/imdario/mergo"
+	//"github.com/imdario/mergo"
 	"encoding/json"
 	"reflect"
 	"strings"
@@ -21,9 +21,9 @@ type SimpleChaincode struct {
 }
 
 type User struct {
-	UserID        	string       	`json:"UserID,omitempty"`
-	FirstName 	string 		`json:"FirstName,omitempty"`
-	LastName 	string 		`json:"LastName,omitempty"`
+	UserID        	*string       	`json:"UserID,omitempty"`
+	FirstName 	*string 	`json:"FirstName,omitempty"`
+	LastName 	*string 	`json:"LastName,omitempty"`
 }
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
@@ -93,7 +93,7 @@ func (t *SimpleChaincode) deleteUser(stub shim.ChaincodeStubInterface, args []st
 	if err != nil {
 		return nil, err
 	}
-	userID = userIn.UserID
+	userID = *userIn.UserID
 	// Delete the key / user from the ledger
 	err = stub.DelState(userID)
 	if err != nil {
@@ -113,7 +113,7 @@ func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []stri
 	if err != nil {
 		return nil, errors.New("User does not exist!")
 	}
-	userID = stateIn.UserID
+	userID = *stateIn.UserID
 
 	// Get the user from the ledger
 	userBytes, err:= stub.GetState(userID)
@@ -147,8 +147,8 @@ func (t *SimpleChaincode) validateInput(args []string) (userIn User, err error) 
 		return user, err
 	}
 
-	if userIn.UserID != "" {
-		userID = strings.TrimSpace(userIn.UserID)
+	if userIn.UserID != nil {
+		userID = strings.TrimSpace(*userIn.UserID)
 		if userID == "" {
 			err = errors.New("UserID not passed")
 			return user, err
@@ -159,7 +159,7 @@ func (t *SimpleChaincode) validateInput(args []string) (userIn User, err error) 
 	}
 
 
-	userIn.UserID = userID
+	userIn.UserID = &userID
 	return userIn, nil
 }
 //******************** createOrUpdateUser ********************/
@@ -175,7 +175,7 @@ func (t *SimpleChaincode) createOrUpdateUser(stub shim.ChaincodeStubInterface, a
 	if err != nil {
 		return nil, err
 	}
-	userID = userIn.UserID
+	userID = *userIn.UserID
 	// Partial updates introduced here
 	// Check if user record existed in stub
 	userBytes, err := stub.GetState(userID)
@@ -188,16 +188,16 @@ func (t *SimpleChaincode) createOrUpdateUser(stub shim.ChaincodeStubInterface, a
 			return nil, err
 		}
 		// Merge partial state updates
-		/*userStub, err = t.mergePartialState(userStub, userIn)
+		userStub, err = t.mergePartialState(userStub, userIn)
 		if err != nil {
 			err = errors.New("Unable to merge state")
 			return nil,err
-		}*/
+		}
 
-		if err := mergo.MergeWithOverwrite(&userStub, userIn); err != nil {
+		/*if err := mergo.MergeWithOverwrite(&userStub, userIn); err != nil {
 			err = errors.New("Unable to merge state")
 			return nil,err
-		}
+		}*/
 	}
 
 	stateJSON, err := json.Marshal(userStub)

@@ -113,6 +113,9 @@ func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []stri
 		return nil, err
 	}
 
+	err = errors.New("Unable to unmarshal input JSON data -- "+args[0])
+	return nil, err
+
 	jsonData:=args[0]
 	userID = ""
 	stateJSON := []byte(jsonData)

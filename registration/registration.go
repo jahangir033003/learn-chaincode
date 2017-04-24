@@ -104,23 +104,52 @@ func (t *SimpleChaincode) deleteUser(stub *shim.ChaincodeStub, args []string) ([
 func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var userID string
 	var state User = User{}
+
+	var stateIn User
 	var err error
 
-	stateIn, err:= t.validateInput(args)
-	if err != nil {
-		return nil, errors.New("Asset does not exist!")
+	if len(args) !=1 {
+		err = errors.New("Incorrect number of arguments. Expecting a JSON strings with mandatory UserId")
+		return nil, err
 	}
-	userID = stateIn.UserID
+
+	jsonData:=args[0]
+	userID = ""
+	stateJSON := []byte(jsonData)
+	err = json.Unmarshal(stateJSON, &stateIn)
+	if err != nil {
+		err = errors.New("Unable to unmarshal input JSON data -- "+stateIn.UserID)
+		return nil, err
+
+	}
+
+	if stateIn.UserID != "" {
+		userID = strings.TrimSpace(stateIn.UserID)
+		if userID == ""{
+			err = errors.New("UserId not passed --"+userID)
+			return nil, err
+		}
+	} else {
+		err = errors.New("User id is mandatory in the input JSON data -- "+userID)
+		return nil, err
+	}
+
+
+	/*stateIn, err:= t.validateInput(args)
+	if err != nil {
+		return nil, errors.New("User does not exist!")
+	}
+	userID = stateIn.UserID*/
 
 	// Get the state from the ledger
 	assetBytes, err:= stub.GetState(userID)
 	if err != nil  || len(assetBytes) ==0{
-		err = errors.New("Unable to get user state from ledger")
+		err = errors.New("Unable to get user state from ledger -- "+userID)
 		return nil, err
 	}
 	err = json.Unmarshal(assetBytes, &state)
 	if err != nil {
-		err = errors.New("Unable to unmarshal state data obtained from ledger")
+		err = errors.New("Unable to unmarshal state data obtained from ledger -- "+userID)
 		return nil, err
 	}
 	return assetBytes, nil

@@ -103,62 +103,61 @@ func (t *SimpleChaincode) deleteUser(stub *shim.ChaincodeStub, args []string) ([
 */
 func (t *SimpleChaincode) readUser(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	var userID string
-	var state User = User{}
+	var user User
 	var err error
 
-	if len(args) !=1 {
-		err = errors.New("Incorrect number of arguments. Expecting a JSON strings with mandatory UserId")
-		return nil, err
+	stateIn, err:= t.validateInput(args)
+	if err != nil {
+		return nil, errors.New("User does not exist!")
 	}
-
-	userID = strings.TrimSpace(args[0])
+	userID = stateIn.UserID
 
 	// Get the state from the ledger
-	assetBytes, err:= stub.GetState(userID)
-	if err != nil  || len(assetBytes) ==0{
+	userBytes, err:= stub.GetState(userID)
+	if err != nil  || len(userBytes) == 0 {
 		err = errors.New("Unable to get user state from ledger -- "+userID)
 		return nil, err
 	}
-	err = json.Unmarshal(assetBytes, &state)
+	err = json.Unmarshal(userBytes, &user)
 	if err != nil {
 		err = errors.New("Unable to unmarshal state data obtained from ledger -- "+userID)
 		return nil, err
 	}
-	return assetBytes, nil
+	return userBytes, nil
 }
 
 
-func (t *SimpleChaincode) validateInput(args []string) (stateIn User, err error) {
-
-	var state User = User{}
+func (t *SimpleChaincode) validateInput(args []string) (userIn User, err error) {
+	var userID string
+	var user User = User{}
 
 	if len(args) !=1 {
-		err = errors.New("Incorrect number of arguments. Expecting a JSON strings with mandatory UserId")
-		return state, err
+		err = errors.New("Incorrect number of arguments. Expecting a JSON strings with mandatory userID")
+		return user, err
+	}
+	jsonData := args[0]
+	userID = ""
+	stateJSON := []byte(jsonData)
+	err = json.Unmarshal(stateJSON, &userIn)
+	if err != nil {
+		err = errors.New("Unable to unmarshal input JSON data")
+		return user, err
 	}
 
-	stateIn.UserID = strings.TrimSpace(args[0])
-	stateIn.FirstName = args[1]
-	stateIn.LastName = args[2]
-	/*if err != nil {
-		err = errors.New("Unable to unmarshal input JSON data")
-		return state, err
-		// state is an empty instance of asset state
-	}*/
-
-	if stateIn.UserID != "" {
-		if stateIn.UserID == ""{
-			err = errors.New("UserId not passed")
-			return state, err
+	if userIn.UserID != "" {
+		userID = strings.TrimSpace(userIn.UserID)
+		if userID == "" {
+			err = errors.New("UserID not passed")
+			return user, err
 		}
 	} else {
-		err = errors.New("User id is mandatory in the input JSON data")
-		return state, err
+		err = errors.New("UserID is mandatory in the input JSON data")
+		return user, err
 	}
 
 
-
-	return stateIn, nil
+	userIn.UserID = userID
+	return userIn, nil
 }
 //******************** createOrUpdateUser ********************/
 

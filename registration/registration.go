@@ -14,6 +14,8 @@ import (
 	"reflect"
 	"strings"
 
+	"time"
+	"strconv"
 )
 
 // SimpleChaincode example simple Chaincode implementation
@@ -24,6 +26,11 @@ type User struct {
 	UserID        	*string       	`json:"UserID,omitempty"`
 	FirstName 	*string 	`json:"FirstName,omitempty"`
 	LastName 	*string 	`json:"LastName,omitempty"`
+	Email 		*string 	`json:"Email,omitempty"`
+	Password 	*string 	`json:"Password,omitempty"`
+	Gender		*uint8		`json:"Gender,omitempty"` // 1= Male, 2 = Female, 3 = Others
+	Dcoument	*string		`json:"Dcoument,omitempty"`
+	CreatedDate	*time.Time	`json:"CreatedDate,omitempty"`
 }
 
 func (t *SimpleChaincode) Init(stub shim.ChaincodeStubInterface, function string, args []string) ([]byte, error) {
@@ -44,6 +51,9 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	} else if function == "deleteUser" {
 		// Deletes an user by ID from the ledger
 		return t.deleteUser(stub, args)
+	} else if function == "getUsers" {
+		// Get All Users from the ledger
+		return t.getUsers(stub, args)
 	}
 	return nil, errors.New("Received unknown invocation: " + function)
 }
@@ -73,6 +83,40 @@ func main() {
 func (t *SimpleChaincode) createUser(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
 	_,erval:=t. createOrUpdateUser(stub, args)
 	return nil, erval
+}
+
+
+func (t *SimpleChaincode) getUsers(stub shim.ChaincodeStubInterface, args []string) ([]byte, error) {
+
+	startKey := args[0]
+	endKey := args[1]
+	limit, _ := strconv.Atoi(args[2])
+
+	keysIter, err := stub.RangeQueryState(startKey, endKey)
+	if err != nil {
+		return nil, fmt.Errorf("keys operation failed. Error accessing state: %s", err)
+	}
+	defer keysIter.Close()
+
+	var keys []string
+	for keysIter.HasNext() {
+		key, _, iterErr := keysIter.Next()
+		if iterErr != nil {
+			return nil, fmt.Errorf("keys operation failed. Error accessing state: %s", err)
+		}
+		keys = append(keys, key)
+		limit = limit-1
+		if limit <= 0 {
+			break
+		}
+	}
+
+	jsonKeys, err := json.Marshal(keys)
+	if err != nil {
+		return nil, fmt.Errorf("keys operation failed. Error marshaling JSON: %s", err)
+	}
+
+	return jsonKeys, nil
 }
 
 

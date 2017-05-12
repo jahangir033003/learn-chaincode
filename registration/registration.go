@@ -101,6 +101,16 @@ func (t *SimpleChaincode) getUsers(stub shim.ChaincodeStubInterface, args []stri
 	//var keys []string
 	var users []User
 	var user User
+	var emptyUser User
+
+	/*data := make([]User, limit)
+	data[record] = Record{
+		ID: record,
+		Name: fmt.Sprintf("Rec: %d", record),
+		Color: color,
+	}
+	*/
+
 	for keysIter.HasNext() {
 		key, _, iterErr := keysIter.Next()
 		if iterErr != nil {
@@ -118,7 +128,9 @@ func (t *SimpleChaincode) getUsers(stub shim.ChaincodeStubInterface, args []stri
 			return nil, err
 		}
 		/** End For User **/
+		//keys = append(keys, key)
 		users = append(users, user)
+		user = emptyUser
 
 		limit = limit-1
 		if limit <= 0 {

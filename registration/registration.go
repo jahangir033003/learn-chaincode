@@ -98,20 +98,35 @@ func (t *SimpleChaincode) getUsers(stub shim.ChaincodeStubInterface, args []stri
 	}
 	defer keysIter.Close()
 
-	var keys []string
+	//var keys []string
+	var users []User
+	var user User
 	for keysIter.HasNext() {
 		key, _, iterErr := keysIter.Next()
 		if iterErr != nil {
 			return nil, fmt.Errorf("keys operation failed. Error accessing state: %s", err)
 		}
-		keys = append(keys, key)
+		/** For User **/
+		userBytes, err:= stub.GetState(key)
+		if err != nil  || len(userBytes) == 0 {
+			err = errors.New("Unable to get user state from ledger -- "+key)
+			return nil, err
+		}
+		err = json.Unmarshal(userBytes, &user)
+		if err != nil {
+			err = errors.New("Unable to unmarshal state data obtained from ledger -- "+key)
+			return nil, err
+		}
+		/** End For User **/
+		users = append(users, user)
+
 		limit = limit-1
 		if limit <= 0 {
 			break
 		}
 	}
 
-	jsonKeys, err := json.Marshal(keys)
+	jsonKeys, err := json.Marshal(users)
 	if err != nil {
 		return nil, fmt.Errorf("keys operation failed. Error marshaling JSON: %s", err)
 	}

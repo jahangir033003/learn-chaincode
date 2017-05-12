@@ -51,9 +51,6 @@ func (t *SimpleChaincode) Invoke(stub shim.ChaincodeStubInterface, function stri
 	} else if function == "deleteUser" {
 		// Deletes an user by ID from the ledger
 		return t.deleteUser(stub, args)
-	} else if function == "getUsers" {
-		// Get All Users from the ledger
-		return t.getUsers(stub, args)
 	}
 	return nil, errors.New("Received unknown invocation: " + function)
 }
@@ -65,6 +62,9 @@ func (t *SimpleChaincode) Query(stub shim.ChaincodeStubInterface, function strin
 	// Handle different functions
 	if function == "read" { //read a variable
 		return t.readUser(stub, args)
+	} else if function == "getUsers" {
+		// Get All Users from the ledger
+		return t.getUsers(stub, args)
 	}
 	fmt.Println("query did not find func: " + function)
 
